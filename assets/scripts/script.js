@@ -1,3 +1,18 @@
+// Adding dayjs plugins so that I can get the ordinal date of the day with the correct syntax
+dayjs.extend(window.dayjs_plugin_advancedFormat);
+dayjs.extend(window.dayjs_plugin_updateLocale);
+
+// function for adding the ordinal with the day so that it has the correct syntax
+// Function gotten off of a github issue since the ordinal was not working the way it was supposed to
+// Github Issue: https://github.com/iamkun/dayjs/issues/1891
+dayjs.updateLocale('en', {
+  ordinal: (n) => {
+    const s = ['th', 'st', 'nd', 'rd'];
+    const v = n % 100;
+    return `[${n}${s[(v - 20) % 10] || s[v] || s[0]}]`;
+  },
+});
+
 // Wrap all code that interacts with the DOM in a call to jQuery to ensure that
 // the code isn't run until the browser has finished rendering all the elements
 // in the html.
@@ -8,7 +23,8 @@ $(function () {
   // function? How can DOM traversal be used to get the "hour-x" id of the
   // time-block containing the button that was clicked? How might the id be
   // useful when saving the description in local storage?
-  //
+  
+
   // TODO: Add code to apply the past, present, or future class to each time
   // block by comparing the id to the current hour. HINTS: How can the id
   // attribute of each time-block be used to conditionally add or remove the
