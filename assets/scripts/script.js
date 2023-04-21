@@ -15,13 +15,16 @@ dayjs.updateLocale('en', {
   },
 });
 
-// Function for getting the saved Data
+// Function for getting the saved Data from the localStorage and parses it then it just returns the parsed data for use
 function getData(currentDay) {
   const data = localStorage.getItem(currentDay.format('MMMM DD, YYYY'));
   return data ? JSON.parse(data) : data;
 }
 
-function setData(hour, data) {
+// A function that takes in the day hour and data to be saved
+// This function grabbs the data form localStorage if their is any if their isn't we use an empty object.
+// Now either way we have a object to work with and I can add the data to it with the key of the hour the data is saved to
+function setData(today, hour, data) {
   const localStore = localStorage.getItem(today.format('MMMM DD, YYYY'));
   const storage = localStore ? JSON.parse(localStore) : {};
 
@@ -29,13 +32,87 @@ function setData(hour, data) {
   localStorage.setItem(today.format('MMMM DD, YYYY'), JSON.stringify(storage));
 }
 
+// A Function that takes in the data grabbed the start of the workDay and also what day the user wants to look at and loads the appropriate time-block
+function loadPage(today, timeblocks, workDay) {
+  $('#currentDay').text(today.format('dddd MMMM, Do'));
+
+  // Loop 1 - 9 so that I get
+  for (let i = 1; i <= 9; i++) {
+    // Getting the current hour of the work day depending on the position of the loop
+    let currentHour = workDay.add(i, 'hour');
+
+    // Grabbing the main div for holding the time-blocks with the id I set on it and appending a string template litteral holding the correct element within
+    // The id is using the string litteral syntax in order to programmatically set it depending on the time (Same with the textarea content)
+    $('#time-blocks').append(`
+     <div id="hour-${currentHour.hour()}" class="row time-block ${
+      today.hour() === currentHour.hour()
+        ? 'present'
+        : today.hour() > currentHour.hour()
+        ? 'past'
+        : 'future'
+    }">
+        <div class="col-2 col-md-1 hour text-center py-3">${currentHour.format(
+          'h A',
+        )}</div>
+        <textarea class="col-8 col-md-10 description" rows="3"> ${
+          timeblocks ? timeblocks[currentHour.hour()] || '' : ''
+        } </textarea>
+        <button class="btn saveBtn col-2 col-md-1" aria-label="save">
+          <i class="fas fa-save" aria-hidden="true"></i>
+        </button>
+      </div>
+    `);
+
+    // Here I just want to add the event listener to the button while i am already looping and have the index for the buttons at hand.
+    // So I an grabbing the button at the current Hour with the parents id then I an just calling the setData method and passing in the nessecary params.
+    $(`#hour-${currentHour.hour()} button`).click((e) => {
+      console.log($(`#hour-${currentHour.hour()} textarea`).val());
+      setData(
+        today,
+        currentHour.hour(),
+        $(`#hour-${currentHour.hour()} textarea`).val(),
+      );
+    });
+  }
+}
+
 // Wrap all code that interacts with the DOM in a call to jQuery to ensure that
 // the code isn't run until the browser has finished rendering all the elements
 // in the html.
 $(function () {
+  // Making a new day object
   const currentDay = dayjs();
+  // Making a day object that starts at 8AM on the dot so I can manipulate it for my timeblock labels
   const workDay = dayjs().hour(8).minute(0).second(0);
+  // Getting the current data in the localStorage and applying it to a variable
   const timeblocks = getData(currentDay);
+
+  let pageOffset = 0;
+
+  //Load Page Function that takes the current day of the user is looking at and loads accordingly
+  loadPage(currentDay, timeblocks, workDay);
+
+  //Next Button Handler for changing the date
+  $('#next-day').click((e) => {
+    pageOffset++;
+    $('#time-blocks').empty();
+    loadPage(
+      currentDay.add(pageOffset, 'day'),
+      getData(currentDay.add(pageOffset, 'day')),
+      workDay,
+    );
+  });
+
+  //Previous Button Handler for changing the date
+  $('#prev-day').click(() => {
+    pageOffset--;
+    $('#time-blocks').empty();
+    loadPage(
+      currentDay.add(pageOffset, 'day'),
+      getData(currentDay.add(pageOffset, 'day')),
+      workDay,
+    );
+  });
   // TODO: Add a listener for click events on the save button. This code should
   // use the id in the containing time-block as a key to save the user input in
   // local storage. HINT: What does `this` reference in the click listener
@@ -54,5 +131,4 @@ $(function () {
   // attribute of each time-block be used to do this?
 
   // TODO: Add code to display the current date in the header of the page.
-  $('#currentDay').text(currentDay.format('dddd MMMM, Do'));
 });
