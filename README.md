@@ -9,7 +9,7 @@ are utilizing the browsers localStorage in order to keep your data persistant. J
 ## Installation
 
 Fork or Clone this repository on your local machine and open it up with your browser however you decide.
-Or you could just come check it out live [Right Here!!]()
+Or you could just come check it out live [Right Here!!](https://nateayye.github.io/work-day-scheduler/)
 
 ## Usage
 
